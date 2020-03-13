@@ -1,23 +1,45 @@
-## Estimate land use demands for urban and crop lu classes using FAO data
+## on boab
+
+## Estimate land use demands ('endowments') for urban and crop lu classes 
+##  using FAO data
 ##
-## Land endowments for other lu classes (herb, shrub, Oforest, Cforest) are estimated based on land-use simulations (accounting for mean suitability of land for LU class) see 3_landuse.R
+## Outputs:
+## landdemand - matrix - 6 years x 6 lu classes 
+##  6 years: 2019-2069 at 10 yr intervals
+##    [6 files: vn and aus under spp 1, 2 and 3]
+##
+## Note: Only first row for 2019 and first two column for urban and crop are 
+##    populated based on FAO data. Other columns for other lu classes 
+##    (i.e. herb, shrub, Oforest, Cforest) are estimated based on land-use 
+##    simulations by accounting for mean suitability of land for LU class, 
+##    see 3_landuse.R
+##
+## TOTAL FILES CREATED IN OUTPOT FOLDER (output): 6
+
 
 
 ## Set up work environment
+
+# setwd("./regSSP/")
+
 rm(list = ls())
 library(sp)
 library(raster)
-source(file.path(".", "R", "1_functions.R"))
-regSSP_birds_data <- '/Volumes/discovery_data/regSSP_birds_data' # change as per server: boab = "./data"
-rdata_path <- file.path(regSSP_birds_data, "RData") # change as per server: boab - "./RData"
-lu_path <- file.path(regSSP_birds_data, "lu_output")
+source(file.path(".", "scripts", "0_functions.R"))
+regSSP_data <- "../regSSP_data" # '/Volumes/discovery_data/regSSP_data'
+rdata_path <- "./RData" # file.path(regSSP_data, "RData_lulcc")
+output_path <- "./output" # file.path(regSSP_data, "output_lulcc") 
+if(!dir.exists(output_path)){dir.create(output_path)}
 
 
 ## Define global variables
 ssps <- paste0("ssp", 1:3)
 timesteps <- c(1, 11, 21, 31, 41, 51) # these time steps we want outputs for to use in land use model
-lu_classes <- c("urban", "crop", "grass", "shrub", "Oforest", "Cforest")
 year_range <- 2019:2070
+
+
+## Change land use classes as per data
+lu_classes <- c("urban", "crop", "grass", "shrub", "Oforest", "Cforest")
 
 
 ## Estimate land demand for lu classes for each timestep
@@ -28,6 +50,15 @@ for (region in c("vn", "aus")){
   lu_yr0 <- table(landuse[])[-c(7,8)] # lu for base year (excluding classes 7 & 8)
   names(lu_yr0) <- lu_classes
   
+  # ## Doesn't match up to sum of reg_mask.. ?
+  # reg_mask <- readRDS(file.path(rdata_path, paste0("mask_", region, ".rds")))
+  # #get sizes of all cells in raster [km2]
+  # cell_size <- area(reg_mask, na.rm=TRUE, weights=FALSE)
+  # #delete NAs from vector of all raster cells
+  # cell_size <- cell_size[!is.na(cell_size)]
+  # #compute area [km2] of all cells in geo_raster
+  # raster_area <- sum(cell_size) # or cell_size * median(cell_size)
+  
   for (j in 1:length(ssps)){
     yrs <- length(year_range)
     lu_byYear <- matrix(NA, nrow = yrs, ncol = length(lu_yr0)) #empty matrix to store lu change trajaectories
@@ -37,7 +68,7 @@ for (region in c("vn", "aus")){
     
     ## Urban
     ## Data source: http://www.fao.org/faostat/en/#data/LC
-    urban_cover <- as.data.frame(read.csv(file.path(regSSP_birds_data, "fao_data", "fao_urban_landcover.csv"), header = T))
+    urban_cover <- as.data.frame(read.csv(file.path(regSSP_data, "fao_data", "fao_urban_landcover.csv"), header = T))
     urban_cover <- urban_cover[,c("Area", "Year", "Value")]
     urban_cover$Area <- gsub("Australia", "aus", urban_cover$Area)
     urban_cover$Area <- gsub("Viet Nam", "vn", urban_cover$Area)
@@ -79,7 +110,7 @@ for (region in c("vn", "aus")){
     print(paste0("Land demand for ", region, " & ", ssps, ":")[j])
     print(rowSums(demand))
     print("----------------------")
-    saveRDS(demand, file.path(lu_path, paste0("landdemand_", region, "_", ssps[j], ".rds")))
+    saveRDS(demand, file.path(output_path, paste0("landdemand_", region, "_", ssps[j], ".rds")))
   }
 }
 

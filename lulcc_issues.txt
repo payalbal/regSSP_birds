@@ -1,0 +1,11 @@
+
+There are two mainn issues to resolve:
+
+1. elasticities for the lulcc model
+2. Maximum.test.sensitivity.plus.specificity.logistic.threshold missing from maxent model output
+
+
+training data to 10%
+
+Changes made since last set of results for BES:
+reduce_predset to correlations() with method = 'spearman' and sample(size = 15000 instead of 10000)

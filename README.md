@@ -1,2 +1,2 @@
-####forked from kapitzas/birds_climatechange
-R project renamed from birds_ccimpacts.Rproj to regtrade_birds.Rproj
+Regional SSP analysis using the lulcc package for the land use model. 
+Scripts adapted from kapitzas/birds_climatechange
